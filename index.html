@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triforce Demo</title>
+    <script src="triforce.js" defer></script>
+    <style>
+        html, body {
+            height: 100%;
+            overflow: visible;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        body {
+            background-color: black;
+            margin: 0;
+        }
+        #toolbar {
+            z-index: 99999; 
+            position: fixed; 
+            display: flex; 
+            flex-wrap:wrap;
+            justify-content: space-between;
+            gap: 10px;
+            top: 0px; 
+            width:100vw; 
+            padding: 10px;
+            color: white;
+            background-color: rgba(255, 255, 255, 0.5); 
+        }
+        #toolbar > div {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #toolbar button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            height: 26px;
+        }
+        #githubBtn {
+            margin-right:20px;
+        }
+        #githubBtn:hover {
+            filter: saturate(4);
+        }
+    </style>
+    <script>
+        window.addEventListener('load', () => {
+            if (document.cookie) {
+                document.cookie.split('; ').forEach(c => {
+                    const [key, val] = c.split('=');
+                    if (val === 'undefined') return;
+                    if (key === "scale") {
+                        document.querySelector('animated-triforce').setAttribute('style', `scale: ${val}`);
+                        document.getElementById(key).value = val;
+                        return;
+                    }
+                    if (val === "true" || val === "false") {
+                        document.getElementById(key).checked = val === "true";
+                    } else {
+                        document.getElementById(key).value = val;
+                    }
+                    document.querySelector('animated-triforce').setAttribute(key, val);
+                });
+            }  
+            if (Boolean(window.location.search)) {
+                const params = new URLSearchParams(window.location.search);
+                const scale = params.get('scale');
+                const showLogo = params.get('showLogo');
+                const color = decodeURIComponent(params.get('color'));
+                const shade = decodeURIComponent(params.get('shade'));
+                const accent = decodeURIComponent(params.get('accent'));
+                const centered = params.get('centered');
+                if (scale) {
+                    document.querySelector('animated-triforce').setAttribute('style', `scale: ${scale}`);
+                    document.getElementById('scale').value = scale;
+                }
+                if (showLogo) {
+                    document.querySelector('animated-triforce').setAttribute('show-logo', showLogo);
+                    document.getElementById('showLogo').checked = showLogo === 'true';
+                }
+                if (color) {
+                    document.querySelector('animated-triforce').setAttribute('color', color);
+                    document.getElementById('color').value = color;
+                }
+                if (shade) {
+                    document.querySelector('animated-triforce').setAttribute('shade', shade);
+                    document.getElementById('shade').value = shade;
+                }
+                if (accent) {
+                    document.querySelector('animated-triforce').setAttribute('accent', accent);
+                    document.getElementById('accent').value = accent;
+                }
+                if (centered) {
+                    document.querySelector('animated-triforce').setAttribute('centered', centered);
+                    document.getElementById('centered').checked = centered === 'true';
+                }
+                updateCookie();
+            }  
+        });
+        function getUrl() {
+            const scale = document.getElementById('scale').value;
+            const showLogo = document.getElementById('showLogo').checked;
+            const color = encodeURIComponent(document.getElementById('color').value);
+            const shade = encodeURIComponent(document.getElementById('shade').value);
+            const accent = encodeURIComponent(document.getElementById('accent').value);
+            const centered = document.getElementById('centered').checked;
+            const base = window.location.protocol + '//' + window.location.host + window.location.pathname;
+            const url = `${base}?scale=${scale}&showLogo=${showLogo}&color=${color}&shade=${shade}&accent=${accent}&centered=${centered}`;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('URL copied to clipboard');
+            });
+        }
+        function updateCookie() {
+            const scale = document.getElementById('scale').value;
+            const showLogo = document.getElementById('showLogo').checked;
+            const color = document.getElementById('color').value;
+            const shade = document.getElementById('shade').value;
+            const accent = document.getElementById('accent').value;
+            const centered = document.getElementById('centered').checked;
+            `scale=${scale}; showLogo=${showLogo}; color=${color}; shade=${shade}; accent=${accent}; centered=${centered}`.split('; ').forEach(cookie => {
+                console.log(cookie);
+                cookie.split('=')[1] !== 'undefined' && (document.cookie = cookie);
+            });
+        }
+        function updateScale(newValue) {
+            document.querySelector('animated-triforce').setAttribute('style', `scale: ${newValue}`);
+            updateCookie();
+        }
+        function reset() {
+            ['scale','showLogo','color','shade','accent','centered'].forEach(key => {
+                const date = new Date();
+                date.setTime(date.getTime() - 1);
+                document.cookie = `${key}=; expires=${date.toUTCString()}`;
+            });
+            window.location.reload();
+        }
+    </script>
+</head>
+<body>
+    <div id="toolbar">
+        <div>
+            <div><label for="scale">Scale:</label> <input id="scale" type="range" min="1" max="4" step="0.5" value="1" oninput="updateScale(this.value)" /></div>
+            <div><label for="showLogo">Show Logo:</label> <input id="showLogo" type="checkbox" checked oninput="document.querySelector('animated-triforce').setAttribute('show-logo', this.checked)" /></div>
+            <div><label for="color">Color:</label> <input id="color" type="color" value="#ffca00" oninput="document.querySelector('animated-triforce').setAttribute('color', this.value)" /></div>
+            <div><label for="shade">Shade:</label> <input id="shade" type="color" value="#8c6a00" oninput="document.querySelector('animated-triforce').setAttribute('shade', this.value)" /></div>
+            <div><label for="accent">Accent:</label> <input id="accent" type="color" value="#b28600" oninput="document.querySelector('animated-triforce').setAttribute('accent', this.value)" /></div>
+            <div><label for="centered">Centered:</label> <input id="centered" type="checkbox" checked oninput="document.querySelector('animated-triforce').setAttribute('centered', this.checked)" /></div>
+            <div><button type="button" onclick="reset()">Reset</button></div>
+            <div><button type="button" onclick="getUrl()"><img src="share.svg" width="20" height="20" /> Share</button></div>
+        </div>
+        <div><a id="githubBtn" target="_blank" href="https://github.com/t0mgerman/LoZ-Triforce-WebComponent"><img src="https://gist.github.com/cxmeel/0dbc95191f239b631c3874f4ccf114e2/raw/github_source.svg" /></a></div>
+    </div>
+    <animated-triforce 
+        show-logo="true" 
+        color="#ffca00" 
+        shade="#8c6a00" 
+        accent="#b28600" 
+        centered="true"
+        enableRestart="true"
+    />
+</body>
+</html>
